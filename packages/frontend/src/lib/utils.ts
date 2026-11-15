@@ -6,7 +6,23 @@
 //-----------------------------------------------------------------------
 
 import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { extendTailwindMerge } from 'tailwind-merge';
+
+/**
+ * Teach tailwind-merge the app's custom type scale from `global.css`. Without
+ * this, `text-300` is not recognised as a font size, so `cn('text-300',
+ * 'text-muted-foreground')` treats both as colours and silently drops the size.
+ */
+const TYPE_SCALE = ['100', '200', '300', '400', '500', '600', 'hero-700', 'hero-800', 'hero-900', 'hero-1000'];
+
+const twMerge = extendTailwindMerge({
+  extend: {
+    theme: {
+      text: TYPE_SCALE,
+      leading: TYPE_SCALE,
+    },
+  },
+});
 
 /**
  * Merge Tailwind CSS class names with conflict resolution.

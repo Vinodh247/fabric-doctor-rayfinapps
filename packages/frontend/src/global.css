@@ -8,42 +8,50 @@
    `useCssTheme()` and project them into a JS theme object (Vega's SVG output
    cannot resolve `var()` references). */
 @theme static {
-  --color-brand: #0f6cbd; /* bar/area fills, button-like brand surfaces */
-  --color-brand-foreground: #0f6cbd; /* line/point marks, branded text & emphasis */
-  --color-hover: #f5f5f5; /* row/cell hover surface in DataGrid + visuals */
+  --color-brand: #117865; /* bar/area fills, button-like brand surfaces */
+  --color-brand-foreground: #0e6b5a; /* line/point marks, branded text & emphasis */
+  --color-hover: #eef3f2; /* row/cell hover surface in DataGrid + visuals */
 }
 
 @theme {
   /* Color tokens — light theme
      Usage: bg-*, text-*, border-* (e.g. bg-primary text-primary-foreground)
      Each token has a -foreground pair for text on that surface. */
-  --color-background: #ffffff; /* page background */
-  --color-foreground: #242424; /* default text */
+  --color-background: #f4f6f6; /* page background */
+  --color-foreground: #1c2423; /* default text */
 
   --color-card: #ffffff; /* card surfaces */
-  --color-card-foreground: #242424;
+  --color-card-foreground: #1c2423;
 
   --color-popover: #ffffff; /* popover/dropdown surfaces */
-  --color-popover-foreground: #242424;
+  --color-popover-foreground: #1c2423;
 
-  --color-primary: #0f6cbd; /* primary actions & buttons */
+  --color-primary: #117865; /* primary actions & buttons (Fabric teal) */
   --color-primary-foreground: #ffffff;
 
-  --color-secondary: #fafafa; /* secondary actions */
-  --color-secondary-foreground: #242424;
+  --color-secondary: #ffffff; /* secondary actions */
+  --color-secondary-foreground: #1c2423;
 
-  --color-muted: #f0f0f0; /* subtle backgrounds */
-  --color-muted-foreground: #616161; /* subdued text */
+  --color-muted: #eaefee; /* subtle backgrounds */
+  --color-muted-foreground: #56615f; /* subdued text */
 
-  --color-accent: #f5f5f5; /* accent highlights */
-  --color-accent-foreground: #242424;
+  --color-accent: #e3f0ed; /* accent highlights */
+  --color-accent-foreground: #0b4f43;
 
   --color-destructive: #c50f1f; /* errors & destructive actions */
   --color-destructive-foreground: #ffffff;
 
-  --color-border: #e0e0e0; /* default border */
-  --color-input: #e0e0e0; /* input field borders */
-  --color-ring: #0f6cbd; /* focus rings */
+  --color-border: #dbe2e0; /* default border */
+  --color-input: #c9d3d1; /* input field borders */
+  --color-ring: #117865; /* focus rings */
+
+  /* Health bands — status of a score; also used for finding severity.
+     Usage: text-band-excellent, bg-band-critical with an opacity modifier, stroke-band-risk */
+  --color-band-excellent: #0b7a3e;
+  --color-band-healthy: #44800f;
+  --color-band-attention: #9a6200;
+  --color-band-risk: #c2410c;
+  --color-band-critical: #c4262e;
 
   --radius-none: 0;
   --radius-sm: 2px;
@@ -142,37 +150,43 @@
 @layer base {
   .dark {
     /* Color tokens — dark theme */
-    --color-background: #292929;
-    --color-foreground: #ffffff;
+    --color-background: #161a1a;
+    --color-foreground: #eef3f2;
 
-    --color-card: #292929;
-    --color-card-foreground: #ffffff;
+    --color-card: #1f2424;
+    --color-card-foreground: #eef3f2;
 
-    --color-popover: #292929;
-    --color-popover-foreground: #ffffff;
+    --color-popover: #262c2c;
+    --color-popover-foreground: #eef3f2;
 
-    --color-primary: #115ea3;
+    --color-primary: #0f7a66;
     --color-primary-foreground: #ffffff;
 
-    --color-secondary: #1f1f1f;
-    --color-secondary-foreground: #ffffff;
+    --color-secondary: #1f2424;
+    --color-secondary-foreground: #eef3f2;
 
-    --color-muted: #141414;
-    --color-muted-foreground: #adadad;
+    --color-muted: #262c2c;
+    --color-muted-foreground: #a3b0ad;
 
-    --color-accent: #3d3d3d;
-    --color-accent-foreground: #ffffff;
+    --color-accent: #1d3833;
+    --color-accent-foreground: #c9f0e6;
 
     --color-destructive: #c50f1f;
     --color-destructive-foreground: #ffffff;
 
-    --color-border: #525252;
-    --color-input: #525252;
-    --color-ring: #479ef5;
+    --color-border: #343c3b;
+    --color-input: #46504e;
+    --color-ring: #3cc5a7;
 
-    --color-brand: #115ea3;
-    --color-brand-foreground: #479ef5;
-    --color-hover: #3d3d3d;
+    --color-band-excellent: #4cc785;
+    --color-band-healthy: #a3d35a;
+    --color-band-attention: #f2b84b;
+    --color-band-risk: #ff8f4d;
+    --color-band-critical: #ff6b6f;
+
+    --color-brand: #0f7a66;
+    --color-brand-foreground: #4fd1b4;
+    --color-hover: #262c2c;
   }
 }
 
@@ -184,10 +198,41 @@
   body {
     @apply bg-background text-foreground antialiased;
   }
+
+  select,
+  input,
+  textarea,
+  button {
+    font-family: inherit;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border) transparent;
+  }
+}
+
+/* Faint measurement grid behind the app — the "instrument panel" backdrop. */
+@utility bg-instrument-grid {
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--color-border) 45%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--color-border) 45%, transparent) 1px, transparent 1px);
+  background-size: 32px 32px;
 }
 
 html,
 body,
 #root {
   height: 100%;
+}
+
+@keyframes fd-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
