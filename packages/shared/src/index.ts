@@ -43,3 +43,4 @@ export type UniversalAppSchema = {
   CategoryResult: CategoryResultRecord;
   Finding: FindingRecord;
 };
+export * from './assessment/index.js';
