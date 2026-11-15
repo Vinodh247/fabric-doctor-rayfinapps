@@ -35,6 +35,9 @@ export function buildShareSummary(result: AssessmentEvaluation, completedAt: Dat
     issues.forEach((finding, index) => {
       lines.push(`${index + 1}. [${SEVERITY_LABEL[finding.severity]}] ${finding.title}`);
       lines.push(`   ${finding.recommendation}`);
+      if (finding.references[0]) {
+        lines.push(`   Docs: ${finding.references[0].url}`);
+      }
     });
   }
 

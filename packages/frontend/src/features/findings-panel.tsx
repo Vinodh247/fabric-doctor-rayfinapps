@@ -1,5 +1,5 @@
-import { CATEGORIES, getCategory, type AssessmentEvaluation, type CategoryId, type FindingResult, type Severity } from '@rayfin-app/shared';
-import { Lightbulb } from 'lucide-react';
+import { CATEGORIES, getCategory, type AssessmentEvaluation, type CategoryId, type FindingResult, type Reference, type Severity } from '@rayfin-app/shared';
+import { BookOpen, ExternalLink, Lightbulb } from 'lucide-react';
 import { useState } from 'react';
 
 import { SeverityBadge } from '@/components/status';
@@ -122,6 +122,35 @@ export function FindingCard({ finding }: { finding: FindingResult }) {
           </div>
         </div>
       )}
+      {finding.references.length > 0 && <References references={finding.references} compact={!isIssue} />}
     </article>
+  );
+}
+
+/** Official Microsoft Learn pages that back a finding. Links open in a new tab. */
+function References({ references, compact }: { references: readonly Reference[]; compact: boolean }) {
+  return (
+    <div className={cn('flex flex-col gap-200 border-t border-border px-500', compact ? 'py-300' : 'py-400')}>
+      <span className="flex items-center gap-100 text-200 leading-200 font-semibold tracking-wide text-muted-foreground uppercase">
+        <BookOpen aria-hidden className="icon-size-100" />
+        Microsoft Learn documentation
+      </span>
+      <ul className="flex flex-col gap-100">
+        {references.map((reference) => (
+          <li key={reference.url}>
+            <a
+              href={reference.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group inline-flex items-start gap-100 rounded-sm text-300 leading-300 text-brand-foreground underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            >
+              <span>{reference.title}</span>
+              <ExternalLink aria-hidden className="mt-100-nudge icon-size-100 shrink-0 opacity-70 group-hover:opacity-100" />
+              <span className="sr-only">(opens Microsoft Learn in a new tab)</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

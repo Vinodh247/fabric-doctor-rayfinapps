@@ -88,6 +88,28 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('tab', { name: `Findings (${QUESTIONS.length})` }));
     fireEvent.click(screen.getByRole('button', { name: /^Critical/ }));
     expect(screen.getAllByRole('article')).toHaveLength(1);
+
+    const doc = screen.getByRole('link', { name: /Roles in workspaces in Microsoft Fabric/ });
+    expect(doc).toHaveAttribute('href', 'https://learn.microsoft.com/fabric/fundamentals/roles-workspaces');
+    expect(doc).toHaveAttribute('target', '_blank');
+    expect(doc).toHaveAttribute('rel', 'noopener noreferrer');
+  });
+
+  it('explains the app on the About & guide page with live-scored examples', async () => {
+    render(<App />);
+    await screen.findByText(/No saved assessments yet/);
+    fireEvent.click(screen.getByRole('button', { name: 'About & guide' }));
+
+    expect(screen.getByRole('heading', { level: 1, name: 'How Fabric Doctor works' })).toBeVisible();
+    expect(screen.getByRole('button', { name: 'About & guide' })).toHaveAttribute('aria-current', 'page');
+    const examples = screen.getByRole('region', { name: 'Worked examples' });
+    for (const score of ['74', '52', '95']) {
+      expect(within(examples).getByText(score)).toBeVisible();
+    }
+    expect(within(examples).getByText('Score alone:')).toBeVisible();
+
+    fireEvent.click(screen.getAllByRole('button', { name: /Start assessment/ }).at(-1)!);
+    expect(screen.getByRole('heading', { level: 1, name: CATEGORIES[0].name })).toBeVisible();
   });
 
   it('keeps the result on screen when saving fails and lets the user retry', async () => {

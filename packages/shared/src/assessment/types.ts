@@ -49,6 +49,12 @@ export interface ControlTemplate {
   description: string;
 }
 
+/** A supporting page in the official Microsoft documentation. */
+export interface Reference {
+  title: string;
+  url: string;
+}
+
 export interface Question {
   id: string;
   category: CategoryId;
@@ -58,6 +64,8 @@ export interface Question {
   options: readonly [AnswerOption, AnswerOption, AnswerOption, AnswerOption, AnswerOption];
   /** When true, a score of 0 raises a critical finding instead of a warning. */
   zeroIsCritical: boolean;
+  /** Official Microsoft Learn pages that back the recommendation. */
+  references: readonly Reference[];
   issue: IssueTemplate;
   control: ControlTemplate;
 }
@@ -86,6 +94,8 @@ export interface FindingResult {
   whyItMatters: string;
   /** Empty for healthy controls. */
   recommendation: string;
+  /** Official Microsoft Learn pages for this topic. */
+  references: readonly Reference[];
 }
 
 export interface CategoryEvaluation {

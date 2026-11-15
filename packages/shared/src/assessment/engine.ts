@@ -92,6 +92,7 @@ function buildFinding(question: Question, score: AnswerScore): FindingResult {
       detail: question.control.description,
       whyItMatters: '',
       recommendation: '',
+      references: question.references,
     };
   }
   return {
@@ -103,6 +104,7 @@ function buildFinding(question: Question, score: AnswerScore): FindingResult {
     detail: question.issue.problem,
     whyItMatters: question.issue.whyItMatters,
     recommendation: question.issue.recommendation,
+    references: question.references,
   };
 }
 

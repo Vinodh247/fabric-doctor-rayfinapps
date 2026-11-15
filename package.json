@@ -27,7 +27,8 @@
     "typecheck": "tsc -b",
     "pack:add": "node scripts/scaffold.mjs",
     "test:template": "node scripts/run-template-tests.mjs",
-    "rayfin:up": "rayfin up"
+    "rayfin:up": "rayfin up",
+    "check:links": "node scripts/check-doc-links.mjs"
   },
   "devDependencies": {
     "@microsoft/rayfin-cli": "^1.36.0-alpha",

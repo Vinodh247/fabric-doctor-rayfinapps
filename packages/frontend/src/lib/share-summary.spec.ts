@@ -13,6 +13,7 @@ describe('buildShareSummary', () => {
     expect(text).toContain('Overall: 95/100, Needs Attention (score alone rates Excellent; capped by 1 critical finding)');
     expect(text).toContain('- Security: 10/15 (Needs Attention)');
     expect(text).toContain('1. [Critical] Workspace access is over-privileged');
+    expect(text).toContain('Docs: https://learn.microsoft.com/fabric/fundamentals/roles-workspaces');
   });
 
   it('omits the priorities section when everything is healthy', () => {

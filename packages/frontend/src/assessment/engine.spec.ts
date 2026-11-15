@@ -41,6 +41,26 @@ describe('assessment configuration', () => {
     }
   });
 
+  it('backs every question with official Microsoft Learn pages', () => {
+    for (const question of QUESTIONS) {
+      expect(question.references.length).toBeGreaterThanOrEqual(2);
+      expect(new Set(question.references.map((r) => r.url)).size).toBe(question.references.length);
+      for (const reference of question.references) {
+        expect(reference.url).toMatch(/^https:\/\/learn\.microsoft\.com\/[a-z0-9-]+\/[a-z0-9/-]+$/);
+        expect(reference.url).not.toMatch(/\/en-us\//);
+        expect(reference.title.trim()).not.toBe('');
+      }
+    }
+  });
+
+  it('carries references onto findings', () => {
+    const result = evaluateAssessment(answerAll(1));
+    for (const finding of result.findings) {
+      const question = QUESTIONS.find((q) => q.id === finding.questionId)!;
+      expect(finding.references).toEqual(question.references);
+    }
+  });
+
   it('gives every question complete finding text', () => {
     for (const question of QUESTIONS) {
       const { title, problem, whyItMatters, recommendation } = question.issue;
@@ -57,6 +77,7 @@ describe('assessment configuration', () => {
         detail: problem,
         whyItMatters,
         recommendation,
+        references: question.references,
       });
       expect(fields.title.length).toBeLessThanOrEqual(200);
       expect(fields.description.length).toBeLessThanOrEqual(2000);

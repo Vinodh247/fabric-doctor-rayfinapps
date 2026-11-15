@@ -1,4 +1,9 @@
-import type { Question } from './types.js';
+import type { Question, Reference } from './types.js';
+
+/** Official Microsoft Learn page. Locale-free URLs redirect to the reader's language. */
+function learn(title: string, path: string): Reference {
+  return { title, url: `https://learn.microsoft.com/${path}` };
+}
 
 /**
  * V1 assessment: 18 questions, 3 per category, in display order.
@@ -23,6 +28,11 @@ export const QUESTIONS: readonly Question[] = [
       { score: 4, label: 'Domain- and environment-aligned workspaces, mapped to Fabric domains, with documented ownership and lifecycle' },
     ],
     zeroIsCritical: true,
+    references: [
+      learn('Workspaces in Microsoft Fabric', 'fabric/fundamentals/workspaces'),
+      learn('Domains in Microsoft Fabric', 'fabric/governance/domains'),
+      learn('Implementation planning: tenant-level workspaces', 'power-bi/guidance/powerbi-implementation-planning-workspaces-tenant-level-planning'),
+    ],
     issue: {
       title: 'Workspaces do not isolate environments or domains',
       problem: 'Production content shares workspaces with development work or with unrelated teams, and there is no consistent workspace structure.',
@@ -47,6 +57,11 @@ export const QUESTIONS: readonly Question[] = [
       { score: 4, label: 'Capacities are separated by workload criticality, with surge protection, a scaling plan and a documented review cadence' },
     ],
     zeroIsCritical: false,
+    references: [
+      learn('Plan your capacity size', 'fabric/enterprise/plan-capacity'),
+      learn('Understand capacity throttling and smoothing', 'fabric/enterprise/throttling'),
+      learn('Manage surge protection', 'fabric/enterprise/surge-protection'),
+    ],
     issue: {
       title: 'Capacity is not planned around workload criticality',
       problem: 'Capacity is unsized, shared between production and development, or relies on a trial.',
@@ -71,6 +86,10 @@ export const QUESTIONS: readonly Question[] = [
       { score: 4, label: 'Layered architecture with documented contracts per layer, shortcuts and mirroring to avoid duplication, and reuse across domains' },
     ],
     zeroIsCritical: false,
+    references: [
+      learn('Implement medallion lakehouse architecture in Fabric', 'fabric/onelake/onelake-medallion-lakehouse-architecture'),
+      learn('Unify data sources with OneLake shortcuts', 'fabric/onelake/onelake-shortcuts'),
+    ],
     issue: {
       title: 'No consistent data layering in OneLake',
       problem: 'Raw, cleansed and business-ready data are not clearly separated, and data is duplicated between items.',
@@ -96,6 +115,11 @@ export const QUESTIONS: readonly Question[] = [
       { score: 4, label: 'A metadata-driven framework with incremental or CDC loading, mirroring where supported, safe reruns and handling of late-arriving data' },
     ],
     zeroIsCritical: false,
+    references: [
+      learn('Incrementally load data from Data Warehouse to Lakehouse', 'fabric/data-factory/tutorial-incremental-copy-data-warehouse-lakehouse'),
+      learn('Mirroring in Microsoft Fabric', 'fabric/mirroring/overview'),
+      learn('What is Copy job in Data Factory', 'fabric/data-factory/what-is-copy-job'),
+    ],
     issue: {
       title: 'Data loads are full reloads or manual',
       problem: 'Pipelines reload complete datasets on each run or depend on someone triggering them.',
@@ -120,6 +144,10 @@ export const QUESTIONS: readonly Question[] = [
       { score: 4, label: 'Automated maintenance with monitoring of file counts and sizes, V-Order where it benefits reads, and partitioning reviewed against query patterns' },
     ],
     zeroIsCritical: false,
+    references: [
+      learn('Delta table maintenance in Microsoft Fabric', 'fabric/data-engineering/lakehouse-table-maintenance'),
+      learn('Optimize Delta Lake tables with V-Order', 'fabric/data-engineering/delta-optimization-and-v-order'),
+    ],
     issue: {
       title: 'Delta tables are not maintained',
       problem: 'Lakehouse tables accumulate small files and old versions without scheduled maintenance.',
@@ -143,6 +171,11 @@ export const QUESTIONS: readonly Question[] = [
       { score: 4, label: 'Automated quality rules with quarantine of bad records, retries and documented recovery runbooks' },
     ],
     zeroIsCritical: true,
+    references: [
+      learn('Choose how to monitor pipeline runs', 'fabric/data-factory/monitor-pipeline-runs'),
+      learn('Office 365 Outlook activity (failure notifications)', 'fabric/data-factory/outlook-activity'),
+      learn('Data quality in Microsoft Purview Unified Catalog', 'purview/unified-catalog-data-quality'),
+    ],
     issue: {
       title: 'Data quality problems reach report users',
       problem: 'There are no automated checks that catch failed loads or bad data before it is consumed.',
@@ -168,6 +201,11 @@ export const QUESTIONS: readonly Question[] = [
       { score: 4, label: 'Group-based least privilege with periodic access reviews and just-in-time elevation for administrators' },
     ],
     zeroIsCritical: true,
+    references: [
+      learn('Roles in workspaces in Microsoft Fabric', 'fabric/fundamentals/roles-workspaces'),
+      learn('Fabric permission model', 'fabric/security/permission-model'),
+      learn('What are Microsoft Entra access reviews?', 'entra/id-governance/access-reviews-overview'),
+    ],
     issue: {
       title: 'Workspace access is over-privileged',
       problem: 'Workspace roles are granted broadly and to individual users rather than through managed groups.',
@@ -192,6 +230,11 @@ export const QUESTIONS: readonly Question[] = [
       { score: 4, label: 'Layered security (OneLake data access roles, SQL permissions, RLS and OLS) driven by data classification and regularly tested' },
     ],
     zeroIsCritical: true,
+    references: [
+      learn('Data security overview (OneLake security)', 'fabric/onelake/security/get-started-security'),
+      learn('Row-level security in Fabric Data Warehouse', 'fabric/data-warehouse/row-level-security'),
+      learn('Row-level security (RLS) with Power BI', 'fabric/security/service-admin-row-level-security'),
+    ],
     issue: {
       title: 'Sensitive data is not restricted at the data level',
       problem: 'Data-level security is missing or applied only in semantic models, leaving other access paths open.',
@@ -215,6 +258,11 @@ export const QUESTIONS: readonly Question[] = [
       { score: 4, label: 'Workspace or managed identities, Key Vault-backed secrets with rotation, and private or trusted access to sensitive sources' },
     ],
     zeroIsCritical: true,
+    references: [
+      learn('Workspace identity', 'fabric/security/workspace-identity'),
+      learn('Configure Azure Key Vault references', 'fabric/data-factory/azure-key-vault-reference-configure'),
+      learn('Trusted workspace access', 'fabric/security/security-trusted-workspace-access'),
+    ],
     issue: {
       title: 'Credentials are tied to people or stored insecurely',
       problem: 'Connections rely on personal accounts or embedded secrets.',
@@ -240,6 +288,11 @@ export const QUESTIONS: readonly Question[] = [
       { score: 4, label: 'Labelling is enforced through mandatory or default labels and data loss prevention policies, with coverage reported' },
     ],
     zeroIsCritical: false,
+    references: [
+      learn('Information protection in Fabric', 'fabric/governance/information-protection'),
+      learn('Default label policy in Power BI and Fabric', 'fabric/governance/sensitivity-label-default-label-policy'),
+      learn('Get started with DLP for Fabric and Power BI', 'purview/dlp-powerbi-get-started'),
+    ],
     issue: {
       title: 'Data is not classified or labelled',
       problem: 'Fabric items do not carry consistent sensitivity labels.',
@@ -263,6 +316,10 @@ export const QUESTIONS: readonly Question[] = [
       { score: 4, label: 'A domain ownership model with a certification process, catalogue descriptions and regular cleanup of unused items' },
     ],
     zeroIsCritical: false,
+    references: [
+      learn('Endorsement overview', 'fabric/governance/endorsement-overview'),
+      learn('OneLake catalog overview', 'fabric/governance/onelake-catalog-overview'),
+    ],
     issue: {
       title: 'No clear ownership or trusted content',
       problem: 'Ownership of Fabric items is unclear and trusted content is not endorsed.',
@@ -287,6 +344,11 @@ export const QUESTIONS: readonly Question[] = [
       { score: 4, label: 'A Centre of Excellence reviews settings regularly, decisions are documented, and audit logs are monitored for changes' },
     ],
     zeroIsCritical: false,
+    references: [
+      learn('About tenant settings', 'fabric/admin/about-tenant-settings'),
+      learn('Export and sharing tenant settings', 'fabric/admin/service-admin-portal-export-sharing'),
+      learn('Governance and compliance in Microsoft Fabric', 'fabric/governance/governance-compliance-overview'),
+    ],
     issue: {
       title: 'Tenant settings are not actively governed',
       problem: 'Fabric tenant settings are not reviewed, documented or scoped to security groups.',
@@ -312,6 +374,10 @@ export const QUESTIONS: readonly Question[] = [
       { score: 4, label: 'All items are in Git with branch policies, code review and feature-branch workspaces' },
     ],
     zeroIsCritical: false,
+    references: [
+      learn('Overview of Fabric Git integration', 'fabric/cicd/git-integration/intro-to-git-integration'),
+      learn('Best practices for lifecycle management in Fabric', 'fabric/cicd/best-practices-cicd'),
+    ],
     issue: {
       title: 'Fabric content is not under source control',
       problem: 'Notebooks, pipelines, semantic models and reports are not consistently versioned in Git.',
@@ -335,6 +401,11 @@ export const QUESTIONS: readonly Question[] = [
       { score: 4, label: 'Automated CI/CD with approvals, automated checks and a tested rollback path' },
     ],
     zeroIsCritical: true,
+    references: [
+      learn('Overview of Fabric deployment pipelines', 'fabric/cicd/deployment-pipelines/intro-to-deployment-pipelines'),
+      learn('Create deployment rules', 'fabric/cicd/deployment-pipelines/create-rules'),
+      learn('CI/CD workflow options in Fabric', 'fabric/cicd/manage-deployment'),
+    ],
     issue: {
       title: 'Changes are not promoted through a controlled process',
       problem: 'Production is edited directly or updated by manually copying items.',
@@ -358,6 +429,10 @@ export const QUESTIONS: readonly Question[] = [
       { score: 4, label: 'Automated tests (data tests, semantic model best-practice rules, notebook unit tests) gate every promotion' },
     ],
     zeroIsCritical: false,
+    references: [
+      learn('Best practices for lifecycle management in Fabric', 'fabric/cicd/best-practices-cicd'),
+      learn('Introduction to CI/CD in Microsoft Fabric', 'fabric/cicd/cicd-overview'),
+    ],
     issue: {
       title: 'Changes are not validated before release',
       problem: 'There is no consistent validation step before changes are promoted.',
@@ -383,6 +458,11 @@ export const QUESTIONS: readonly Question[] = [
       { score: 4, label: 'Proactive monitoring with alerts, trend analysis, chargeback or showback per workspace, and a tuning backlog' },
     ],
     zeroIsCritical: false,
+    references: [
+      learn('What is the Microsoft Fabric Capacity Metrics app?', 'fabric/enterprise/metrics-app'),
+      learn('Troubleshooting guide: monitor and identify capacity usage', 'fabric/enterprise/capacity-planning-troubleshoot-consumption'),
+      learn('Configure capacity notifications', 'fabric/admin/service-admin-premium-capacity-notifications'),
+    ],
     issue: {
       title: 'Capacity utilisation is not monitored',
       problem: 'Capacity consumption and throttling are not tracked proactively.',
@@ -406,6 +486,11 @@ export const QUESTIONS: readonly Question[] = [
       { score: 4, label: 'End-to-end observability: run logs, durations, freshness SLAs and alerts routed to an on-call owner' },
     ],
     zeroIsCritical: false,
+    references: [
+      learn('What is Monitor hub in Microsoft Fabric?', 'fabric/admin/monitoring-hub'),
+      learn('Workspace monitoring overview', 'fabric/fundamentals/workspace-monitoring-overview'),
+      learn('Choose how to monitor pipeline runs', 'fabric/data-factory/monitor-pipeline-runs'),
+    ],
     issue: {
       title: 'No central monitoring of data workloads',
       problem: 'Pipeline, notebook and refresh outcomes are not monitored centrally.',
@@ -429,6 +514,10 @@ export const QUESTIONS: readonly Question[] = [
       { score: 4, label: 'Audit and usage data is retained long term, analysed for adoption and anomalies, with alerts on sensitive activities such as exports and sharing' },
     ],
     zeroIsCritical: false,
+    references: [
+      learn('Track user activities in Microsoft Fabric', 'fabric/admin/track-user-activities'),
+      learn('Feature usage and adoption report', 'fabric/admin/feature-usage-adoption'),
+    ],
     issue: {
       title: 'Usage and audit activity are not tracked',
       problem: 'Activity logs are not collected or reviewed.',

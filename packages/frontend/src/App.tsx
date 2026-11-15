@@ -8,6 +8,7 @@ import { ArrowLeft, Loader2 } from 'lucide-react';
 import { useRef, useState } from 'react';
 
 import { AppHeader } from '@/components/app-header';
+import { AboutScreen } from '@/features/about-screen';
 import { Button } from '@/components/ui/button';
 import { AssessmentScreen } from '@/features/assessment-screen';
 import { ResultsScreen, type SaveState } from '@/features/results-screen';
@@ -18,6 +19,7 @@ import { getRayfinClient } from '@/lib/rayfin-client';
 
 type View =
   | { name: 'welcome' }
+  | { name: 'about' }
   | { name: 'assessment'; step: number }
   | { name: 'opening' }
   | { name: 'open-failed'; message: string }
@@ -85,9 +87,14 @@ function App() {
 
   return (
     <div className="min-h-full bg-background bg-instrument-grid">
-      <AppHeader onHome={() => goTo({ name: 'welcome' })} />
+      <AppHeader
+        current={view.name === 'about' ? 'about' : 'assessment'}
+        onHome={() => goTo({ name: 'welcome' })}
+        onAbout={() => goTo({ name: 'about' })}
+      />
       <main className="mx-auto max-w-6xl px-400 md:px-600">
         {view.name === 'welcome' && <WelcomeScreen onStart={start} onOpen={open} />}
+        {view.name === 'about' && <AboutScreen onStart={start} />}
         {view.name === 'assessment' && (
           <AssessmentScreen
             answers={answers}
