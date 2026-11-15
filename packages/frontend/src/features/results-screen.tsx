@@ -1,5 +1,5 @@
 import type { AssessmentEvaluation, CategoryEvaluation, Severity } from '@rayfin-app/shared';
-import { ArrowRight, Check, ClipboardCopy, PencilLine, RotateCcw } from 'lucide-react';
+import { ArrowRight, Check, CircleAlert, ClipboardCopy, CloudCheck, Info, Loader2, PencilLine, RotateCcw } from 'lucide-react';
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 
 import { ScoreGauge } from '@/components/score-gauge';
@@ -10,9 +10,15 @@ import { buildShareSummary } from '@/lib/share-summary';
 import { CATEGORY_ICONS, SEVERITY_META, STATUS_TONE } from '@/lib/tones';
 import { cn } from '@/lib/utils';
 
+export type SaveState = { status: 'saving' } | { status: 'saved' } | { status: 'error'; message: string };
+
 interface ResultsScreenProps {
   result: AssessmentEvaluation;
   completedAt: Date;
+  save: SaveState;
+  /** Shown above the results, e.g. when a saved result was re-scored by newer rules. */
+  notice?: string;
+  onRetrySave: () => void;
   onReview: () => void;
   onRestart: () => void;
 }
@@ -27,7 +33,7 @@ const HEADLINE: Record<AssessmentEvaluation['overallStatus'], string> = {
   Critical: 'Foundational controls are missing.',
 };
 
-export function ResultsScreen({ result, completedAt, onReview, onRestart }: ResultsScreenProps) {
+export function ResultsScreen({ result, completedAt, save, notice, onRetrySave, onReview, onRestart }: ResultsScreenProps) {
   const [tab, setTab] = useState<Tab>('overview');
   const tabs: { id: Tab; label: string }[] = [
     { id: 'overview', label: 'Overview' },
@@ -48,6 +54,7 @@ export function ResultsScreen({ result, completedAt, onReview, onRestart }: Resu
         <div className="flex flex-col gap-100">
           <span className="text-200 leading-200 font-semibold tracking-wide text-muted-foreground uppercase">Assessment results</span>
           <h1 className="font-heading text-hero-700 leading-hero-700 font-bold tracking-tight">Fabric architecture health</h1>
+          <SaveIndicator save={save} onRetry={onRetrySave} />
         </div>
         <div className="flex flex-wrap gap-200">
           <Button variant="ghost" onClick={onReview}>
@@ -61,6 +68,13 @@ export function ResultsScreen({ result, completedAt, onReview, onRestart }: Resu
           <ShareButton result={result} completedAt={completedAt} />
         </div>
       </div>
+
+      {notice && (
+        <p className="flex items-start gap-200 rounded-xl border border-border bg-card px-400 py-300 text-300 leading-300">
+          <Info aria-hidden className="mt-100-nudge icon-size-200 shrink-0 text-brand-foreground" />
+          {notice}
+        </p>
+      )}
 
       <div role="tablist" aria-label="Results views" className="flex gap-100 border-b border-border">
         {tabs.map((t) => (
@@ -261,6 +275,40 @@ function CategoryRow({ category, index }: { category: CategoryEvaluation; index:
         />
       </div>
     </li>
+  );
+}
+
+function SaveIndicator({ save, onRetry }: { save: SaveState; onRetry: () => void }) {
+  return (
+    <div role="status" className="flex min-h-6 flex-wrap items-center gap-200 text-300 leading-300">
+      {save.status === 'saving' && (
+        <span className="flex items-center gap-100 text-muted-foreground">
+          <Loader2 aria-hidden className="icon-size-200 animate-spin" />
+          Saving to your account…
+        </span>
+      )}
+      {save.status === 'saved' && (
+        <span className="flex items-center gap-100 text-muted-foreground">
+          <CloudCheck aria-hidden className="icon-size-200 text-band-excellent" />
+          Saved to your account
+        </span>
+      )}
+      {save.status === 'error' && (
+        <>
+          <span className="flex items-center gap-100 text-band-critical">
+            <CircleAlert aria-hidden className="icon-size-200" />
+            Not saved. {save.message}
+          </span>
+          <button
+            type="button"
+            onClick={onRetry}
+            className="font-semibold text-brand-foreground underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          >
+            Retry
+          </button>
+        </>
+      )}
+    </div>
   );
 }
 

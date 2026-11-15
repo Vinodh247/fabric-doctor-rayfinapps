@@ -2,6 +2,7 @@ import { CATEGORIES, HEALTH_BANDS, QUESTIONS } from '@rayfin-app/shared';
 import { ArrowRight } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import { HistoryPanel } from '@/features/history-panel';
 import { CATEGORY_ICONS, STATUS_TONE } from '@/lib/tones';
 
 const BAND_RANGES = HEALTH_BANDS.map((band, index) => ({
@@ -9,8 +10,9 @@ const BAND_RANGES = HEALTH_BANDS.map((band, index) => ({
   range: index === 0 ? `${band.minimum}–100` : `${band.minimum}–${HEALTH_BANDS[index - 1].minimum - 1}`,
 }));
 
-export function WelcomeScreen({ onStart }: { onStart: () => void }) {
+export function WelcomeScreen({ onStart, onOpen }: { onStart: () => void; onOpen: (id: string) => void }) {
   return (
+    <>
     <div className="grid grid-cols-1 gap-800 py-800 lg:grid-cols-[1.1fr_1fr] lg:items-center lg:py-800">
       <section className="flex flex-col gap-600">
         <span className="w-fit rounded-full bg-accent px-300 py-100 text-200 leading-200 font-semibold tracking-wide text-accent-foreground uppercase">
@@ -28,7 +30,7 @@ export function WelcomeScreen({ onStart }: { onStart: () => void }) {
             Start assessment
             <ArrowRight />
           </Button>
-          <span className="text-300 leading-300 text-muted-foreground">Guided self-assessment. No tenant access required.</span>
+          <span className="text-300 leading-300 text-muted-foreground">Results are saved privately to your account.</span>
         </div>
 
         <div className="mt-200 flex flex-col gap-200">
@@ -73,5 +75,7 @@ export function WelcomeScreen({ onStart }: { onStart: () => void }) {
         </ul>
       </section>
     </div>
+    <HistoryPanel onOpen={onOpen} />
+    </>
   );
 }

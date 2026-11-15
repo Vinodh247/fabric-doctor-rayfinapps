@@ -1,5 +1,6 @@
 import {
   entity,
+  int,
   role,
   text,
   uuid,
@@ -13,6 +14,10 @@ export class Finding {
   @uuid() id!: string;
 
   @uuid() assessmentId!: string;
+
+  @text({ max: 100 }) questionId!: string;
+
+  @int() answerScore!: number;
 
   @text({ max: 100 }) category!: string;
 

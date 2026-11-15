@@ -30,6 +30,8 @@ export interface CategoryResultRecord {
 export interface FindingRecord {
   id: string;
   assessmentId: string;
+  questionId: string;
+  answerScore: number;
   category: string;
   severity: string;
   title: string;
