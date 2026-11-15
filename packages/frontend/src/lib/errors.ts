@@ -1,4 +1,4 @@
-import { NotSignedInError } from '@/lib/assessment-store';
+import { InvalidSavedDateError, NotSignedInError } from '@/lib/assessment-store';
 import { MissingRayfinConfigError } from '@/lib/rayfin-client';
 
 /**
@@ -7,7 +7,7 @@ import { MissingRayfinConfigError } from '@/lib/rayfin-client';
  */
 export function friendlyDataError(error: unknown, action: string): string {
   console.error(`Fabric Doctor: failed to ${action}`, error);
-  if (error instanceof NotSignedInError) {
+  if (error instanceof NotSignedInError || error instanceof InvalidSavedDateError) {
     return error.message;
   }
   if (error instanceof MissingRayfinConfigError) {

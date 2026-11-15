@@ -35,8 +35,9 @@ function fakeClient(options: { signedIn?: boolean; failCreate?: (entity: string,
         table.delete(id);
         return row;
       },
+      // Mirrors the real client: findById() selects only the primary key.
       async findById(id: string) {
-        return table.get(id) ?? null;
+        return table.has(id) ? { id } : null;
       },
       select(fields: string[]) {
         let rows = [...table.values()];
@@ -128,6 +129,25 @@ describe('saveAssessment and loadAssessment', () => {
     expect(loaded.result).toEqual(result);
     expect(loaded.completedAt).toEqual(completedAt);
     expect(loaded.rescored).toBe(false);
+  });
+
+  it('reads every field it needs even though findById returns only the id', async () => {
+    const { client } = fakeClient();
+    const result = evaluateAssessment(answersWith());
+    const id = await saveAssessment(client, result, completedAt);
+    expect(await client.data.Assessment.findById(id)).toEqual({ id });
+
+    const loaded = await loadAssessment(client, id);
+    expect(loaded.completedAt).toEqual(completedAt);
+    expect(loaded.savedScore).toBe(result.overallScore);
+    expect(loaded.rescored).toBe(false);
+  });
+
+  it('rejects an unreadable saved date with a clear error instead of an invalid Date', async () => {
+    const { client, tables } = fakeClient();
+    const id = await saveAssessment(client, evaluateAssessment(answersWith()), completedAt);
+    tables.Assessment.get(id)!.completedAt = 'not a date';
+    await expect(loadAssessment(client, id)).rejects.toThrow('unreadable completion date');
   });
 
   it('accepts dates returned as ISO strings', async () => {

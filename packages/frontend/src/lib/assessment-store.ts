@@ -183,8 +183,20 @@ export async function saveAssessment(client: DataClient, result: AssessmentEvalu
   throw failure.reason;
 }
 
-function toDate(value: Date | string): Date {
-  return value instanceof Date ? value : new Date(value);
+export class InvalidSavedDateError extends Error {
+  constructor() {
+    super('This saved assessment has an unreadable completion date.');
+    this.name = 'InvalidSavedDateError';
+  }
+}
+
+/** The Data API may return dates as Date objects or ISO strings. Rejects anything unreadable. */
+function toDate(value: Date | string | null | undefined): Date {
+  const date = value instanceof Date ? value : new Date(value ?? Number.NaN);
+  if (Number.isNaN(date.getTime())) {
+    throw new InvalidSavedDateError();
+  }
+  return date;
 }
 
 /** One page of the signed-in user's assessments, newest first. */
@@ -231,7 +243,11 @@ async function findingRows(client: DataClient, assessmentId: string) {
 /** Loads a saved assessment and rebuilds its full result from the saved answers. */
 export async function loadAssessment(client: DataClient, id: string): Promise<LoadedAssessment> {
   currentOwner(client);
-  const assessment = await client.data.Assessment.findById(id);
+  // Select fields explicitly: the client's findById() returns only the primary key.
+  const [assessment] = await client.data.Assessment.select(['id', 'overallScore', 'overallStatus', 'completedAt'])
+    .where({ id: { eq: id } })
+    .first(1)
+    .execute();
   if (!assessment) {
     throw new Error('This assessment no longer exists.');
   }
