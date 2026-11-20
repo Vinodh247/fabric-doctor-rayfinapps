@@ -1,22 +1,25 @@
 import {
   CATEGORIES,
+  NOT_APPLICABLE,
   QUESTIONS,
   getUnansweredQuestions,
-  type AnswerScore,
+  type Answer,
   type AssessmentAnswers,
   type Question,
 } from '@rayfin-app/shared';
-import { ArrowLeft, ArrowRight, Check, Gauge } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Ban, Check, Gauge, Layers } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 
 import { Button } from '@/components/ui/button';
+import { ESTATE_PROFILE, profileAnswer } from '@/lib/estate-profile';
 import { CATEGORY_ICONS, MATURITY_LABELS } from '@/lib/tones';
 import { cn } from '@/lib/utils';
 
 interface AssessmentScreenProps {
   answers: AssessmentAnswers;
   step: number;
-  onAnswer: (questionId: string, score: AnswerScore) => void;
+  /** Sets an answer; undefined clears it. */
+  onAnswer: (questionId: string, answer: Answer | undefined) => void;
   onStepChange: (step: number) => void;
   onComplete: () => void;
 }
@@ -125,6 +128,8 @@ export function AssessmentScreen({ answers, step, onAnswer, onStepChange, onComp
           </div>
         </header>
 
+        {step === 0 && <EstateProfile answers={answers} onAnswer={onAnswer} />}
+
         {questions.map((question) => (
           <QuestionCard key={question.id} question={question} value={answers[question.id]} onAnswer={onAnswer} />
         ))}
@@ -168,8 +173,8 @@ function QuestionCard({
   onAnswer,
 }: {
   question: Question;
-  value: AnswerScore | undefined;
-  onAnswer: (questionId: string, score: AnswerScore) => void;
+  value: Answer | undefined;
+  onAnswer: (questionId: string, answer: Answer | undefined) => void;
 }) {
   const number = QUESTION_NUMBER.get(question.id);
   const promptId = `${question.id}-prompt`;
@@ -220,7 +225,109 @@ function QuestionCard({
             </label>
           );
         })}
+        {question.notApplicable && (
+          <label
+            className={cn(
+              'group flex cursor-pointer items-start gap-300 rounded-xl border border-dashed px-400 py-300 transition-colors',
+              'has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring',
+              value === NOT_APPLICABLE ? 'border-primary bg-accent' : 'border-input hover:bg-hover',
+            )}
+          >
+            <input
+              type="radio"
+              name={question.id}
+              value={NOT_APPLICABLE}
+              checked={value === NOT_APPLICABLE}
+              onChange={() => onAnswer(question.id, NOT_APPLICABLE)}
+              className="sr-only"
+            />
+            <span
+              aria-hidden
+              className={cn(
+                'mt-100-nudge flex h-6 w-6 shrink-0 items-center justify-center rounded-md border',
+                value === NOT_APPLICABLE ? 'border-primary bg-primary text-primary-foreground' : 'border-input text-muted-foreground',
+              )}
+            >
+              <Ban className="icon-size-100" />
+            </span>
+            <span className="flex min-w-0 flex-1 flex-col gap-100-nudge">
+              <span className={cn('text-300 leading-300', value === NOT_APPLICABLE ? 'font-medium text-accent-foreground' : 'text-foreground')}>
+                Not applicable
+              </span>
+              <span className="text-200 leading-200 text-muted-foreground">{question.notApplicable.label}. Excluded from the score.</span>
+            </span>
+          </label>
+        )}
       </div>
     </fieldset>
+  );
+}
+
+/** Two quick questions that tailor the assessment by marking irrelevant questions not applicable. */
+function EstateProfile({
+  answers,
+  onAnswer,
+}: {
+  answers: AssessmentAnswers;
+  onAnswer: (questionId: string, answer: Answer | undefined) => void;
+}) {
+  function choose(questionIds: readonly string[], choice: 'yes' | 'no') {
+    for (const id of questionIds) {
+      if (choice === 'no') {
+        onAnswer(id, NOT_APPLICABLE);
+      } else if (answers[id] === NOT_APPLICABLE) {
+        onAnswer(id, undefined);
+      }
+    }
+  }
+
+  return (
+    <section aria-labelledby="profile-heading" className="flex flex-col gap-400 rounded-2xl border border-border bg-muted/50 p-500 md:p-600">
+      <div className="flex items-start gap-300">
+        <Layers aria-hidden className="mt-100 icon-size-300 shrink-0 text-brand-foreground" />
+        <div className="flex flex-col gap-100">
+          <h2 id="profile-heading" className="text-400 leading-400 font-semibold">
+            First, your estate
+          </h2>
+          <p className="text-300 leading-300 text-muted-foreground">
+            Two quick questions skip anything that doesn't apply to you. You can change individual answers later.
+          </p>
+        </div>
+      </div>
+      {ESTATE_PROFILE.map((item) => {
+        const current = profileAnswer(answers, item.questionIds);
+        const skipped = item.questionIds.length;
+        return (
+          <div key={item.id} role="radiogroup" aria-labelledby={`profile-${item.id}`} className="flex flex-col gap-200 md:flex-row md:items-center md:justify-between">
+            <div className="flex min-w-0 flex-col">
+              <span id={`profile-${item.id}`} className="text-300 leading-300 font-semibold">
+                {item.prompt}
+              </span>
+              <span className="text-200 leading-200 text-muted-foreground">
+                {current === 'no' ? `${skipped} questions marked not applicable.` : item.help}
+              </span>
+            </div>
+            <div className="flex shrink-0 gap-200">
+              {(['yes', 'no'] as const).map((choice) => (
+                <button
+                  key={choice}
+                  type="button"
+                  role="radio"
+                  aria-checked={current === choice}
+                  onClick={() => choose(item.questionIds, choice)}
+                  className={cn(
+                    'h-9 w-16 rounded-lg border text-[length:var(--text-300)] font-semibold transition-colors',
+                    'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
+                    current === choice ? 'border-primary bg-primary text-primary-foreground' : 'border-input bg-card hover:bg-hover',
+                  )}
+                >
+                  {choice === 'yes' ? 'Yes' : 'No'}
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+      })}
+    </section>
   );
 }

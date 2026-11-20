@@ -95,6 +95,46 @@ describe('App', () => {
     expect(doc).toHaveAttribute('rel', 'noopener noreferrer');
   });
 
+  it('skips questions that do not apply using the estate profile', async () => {
+    render(<App />);
+    await screen.findByText(/No saved assessments yet/);
+    fireEvent.click(screen.getByRole('button', { name: /Start assessment/ }));
+
+    const storage = screen.getByRole('radiogroup', { name: /Lakehouses or Warehouses/ });
+    fireEvent.click(within(storage).getByRole('radio', { name: 'No' }));
+    expect(within(storage).getByText('2 questions marked not applicable.')).toBeVisible();
+
+    // The platform data-layers question on this step is now answered "Not applicable".
+    const dataLayers = screen.getAllByRole('group').find((g) => within(g).queryByText(/organised across Lakehouses and Warehouses/))!;
+    expect(within(dataLayers).getByRole('radio', { name: /Not applicable/ })).toBeChecked();
+
+    fireEvent.click(within(storage).getByRole('radio', { name: 'Yes' }));
+    expect(within(dataLayers).getByRole('radio', { name: /Not applicable/ })).not.toBeChecked();
+  });
+
+  it('simulates fixes in What-if and plans them in the Roadmap', async () => {
+    render(<App />);
+    await screen.findByText(/No saved assessments yet/);
+    completeAssessment();
+
+    // Overview teaser: one fix (the critical finding) reaches the next band.
+    fireEvent.click(screen.getByRole('button', { name: /One fix to reach Excellent/ }));
+    expect(screen.getByRole('tab', { name: 'What-if' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('img', { name: 'Health score 95 out of 100' })).toBeVisible();
+
+    fireEvent.click(screen.getByRole('button', { name: /Simulate this path/ }));
+    expect(screen.getByRole('img', { name: 'Health score 99 out of 100' })).toBeVisible();
+    expect(screen.getByText('Simulated score 99, Excellent.')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reset' }));
+    expect(screen.getByRole('img', { name: 'Health score 95 out of 100' })).toBeVisible();
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Roadmap' }));
+    expect(screen.getByRole('heading', { name: '30 / 60 / 90-day plan' })).toBeVisible();
+    expect(screen.getAllByText('Workspace access is over-privileged').length).toBeGreaterThan(0);
+    expect(screen.getByRole('region', { name: 'Quick wins: 1' })).toBeVisible();
+  });
+
   it('explains the app on the About & guide page with live-scored examples', async () => {
     render(<App />);
     await screen.findByText(/No saved assessments yet/);

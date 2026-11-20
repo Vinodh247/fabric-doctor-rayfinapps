@@ -12,6 +12,10 @@ function learn(title: string, path: string): Reference {
  * 4 (mature). Scores 0–2 raise the question's `issue` finding; 3–4 record its
  * `control` as a healthy control. A score of 0 is critical when
  * `zeroIsCritical` is set, otherwise it is a warning.
+ *
+ * `effort` is the typical effort to close the gap (low ≈ days, medium ≈ weeks,
+ * high ≈ a project) and drives roadmap planning. Questions with `notApplicable`
+ * can be excluded from scoring when they do not apply to the estate.
  */
 export const QUESTIONS: readonly Question[] = [
   // ---------------------------------------------------------------- Platform Architecture
@@ -28,6 +32,7 @@ export const QUESTIONS: readonly Question[] = [
       { score: 4, label: 'Domain- and environment-aligned workspaces, mapped to Fabric domains, with documented ownership and lifecycle' },
     ],
     zeroIsCritical: true,
+    effort: 'high',
     references: [
       learn('Workspaces in Microsoft Fabric', 'fabric/fundamentals/workspaces'),
       learn('Domains in Microsoft Fabric', 'fabric/governance/domains'),
@@ -57,6 +62,7 @@ export const QUESTIONS: readonly Question[] = [
       { score: 4, label: 'Capacities are separated by workload criticality, with surge protection, a scaling plan and a documented review cadence' },
     ],
     zeroIsCritical: false,
+    effort: 'medium',
     references: [
       learn('Plan your capacity size', 'fabric/enterprise/plan-capacity'),
       learn('Understand capacity throttling and smoothing', 'fabric/enterprise/throttling'),
@@ -86,6 +92,8 @@ export const QUESTIONS: readonly Question[] = [
       { score: 4, label: 'Layered architecture with documented contracts per layer, shortcuts and mirroring to avoid duplication, and reuse across domains' },
     ],
     zeroIsCritical: false,
+    effort: 'high',
+    notApplicable: { label: 'We only use Fabric for Power BI; we have no Lakehouses or Warehouses' },
     references: [
       learn('Implement medallion lakehouse architecture in Fabric', 'fabric/onelake/onelake-medallion-lakehouse-architecture'),
       learn('Unify data sources with OneLake shortcuts', 'fabric/onelake/onelake-shortcuts'),
@@ -115,6 +123,8 @@ export const QUESTIONS: readonly Question[] = [
       { score: 4, label: 'A metadata-driven framework with incremental or CDC loading, mirroring where supported, safe reruns and handling of late-arriving data' },
     ],
     zeroIsCritical: false,
+    effort: 'high',
+    notApplicable: { label: 'We do not load data into Fabric; reports connect to sources directly' },
     references: [
       learn('Incrementally load data from Data Warehouse to Lakehouse', 'fabric/data-factory/tutorial-incremental-copy-data-warehouse-lakehouse'),
       learn('Mirroring in Microsoft Fabric', 'fabric/mirroring/overview'),
@@ -144,6 +154,8 @@ export const QUESTIONS: readonly Question[] = [
       { score: 4, label: 'Automated maintenance with monitoring of file counts and sizes, V-Order where it benefits reads, and partitioning reviewed against query patterns' },
     ],
     zeroIsCritical: false,
+    effort: 'low',
+    notApplicable: { label: 'We have no Lakehouses or Delta tables' },
     references: [
       learn('Delta table maintenance in Microsoft Fabric', 'fabric/data-engineering/lakehouse-table-maintenance'),
       learn('Optimize Delta Lake tables with V-Order', 'fabric/data-engineering/delta-optimization-and-v-order'),
@@ -171,6 +183,7 @@ export const QUESTIONS: readonly Question[] = [
       { score: 4, label: 'Automated quality rules with quarantine of bad records, retries and documented recovery runbooks' },
     ],
     zeroIsCritical: true,
+    effort: 'medium',
     references: [
       learn('Choose how to monitor pipeline runs', 'fabric/data-factory/monitor-pipeline-runs'),
       learn('Office 365 Outlook activity (failure notifications)', 'fabric/data-factory/outlook-activity'),
@@ -201,6 +214,7 @@ export const QUESTIONS: readonly Question[] = [
       { score: 4, label: 'Group-based least privilege with periodic access reviews and just-in-time elevation for administrators' },
     ],
     zeroIsCritical: true,
+    effort: 'low',
     references: [
       learn('Roles in workspaces in Microsoft Fabric', 'fabric/fundamentals/roles-workspaces'),
       learn('Fabric permission model', 'fabric/security/permission-model'),
@@ -230,6 +244,7 @@ export const QUESTIONS: readonly Question[] = [
       { score: 4, label: 'Layered security (OneLake data access roles, SQL permissions, RLS and OLS) driven by data classification and regularly tested' },
     ],
     zeroIsCritical: true,
+    effort: 'high',
     references: [
       learn('Data security overview (OneLake security)', 'fabric/onelake/security/get-started-security'),
       learn('Row-level security in Fabric Data Warehouse', 'fabric/data-warehouse/row-level-security'),
@@ -258,6 +273,7 @@ export const QUESTIONS: readonly Question[] = [
       { score: 4, label: 'Workspace or managed identities, Key Vault-backed secrets with rotation, and private or trusted access to sensitive sources' },
     ],
     zeroIsCritical: true,
+    effort: 'medium',
     references: [
       learn('Workspace identity', 'fabric/security/workspace-identity'),
       learn('Configure Azure Key Vault references', 'fabric/data-factory/azure-key-vault-reference-configure'),
@@ -288,6 +304,7 @@ export const QUESTIONS: readonly Question[] = [
       { score: 4, label: 'Labelling is enforced through mandatory or default labels and data loss prevention policies, with coverage reported' },
     ],
     zeroIsCritical: false,
+    effort: 'medium',
     references: [
       learn('Information protection in Fabric', 'fabric/governance/information-protection'),
       learn('Default label policy in Power BI and Fabric', 'fabric/governance/sensitivity-label-default-label-policy'),
@@ -316,6 +333,7 @@ export const QUESTIONS: readonly Question[] = [
       { score: 4, label: 'A domain ownership model with a certification process, catalogue descriptions and regular cleanup of unused items' },
     ],
     zeroIsCritical: false,
+    effort: 'low',
     references: [
       learn('Endorsement overview', 'fabric/governance/endorsement-overview'),
       learn('OneLake catalog overview', 'fabric/governance/onelake-catalog-overview'),
@@ -344,6 +362,7 @@ export const QUESTIONS: readonly Question[] = [
       { score: 4, label: 'A Centre of Excellence reviews settings regularly, decisions are documented, and audit logs are monitored for changes' },
     ],
     zeroIsCritical: false,
+    effort: 'low',
     references: [
       learn('About tenant settings', 'fabric/admin/about-tenant-settings'),
       learn('Export and sharing tenant settings', 'fabric/admin/service-admin-portal-export-sharing'),
@@ -374,6 +393,7 @@ export const QUESTIONS: readonly Question[] = [
       { score: 4, label: 'All items are in Git with branch policies, code review and feature-branch workspaces' },
     ],
     zeroIsCritical: false,
+    effort: 'low',
     references: [
       learn('Overview of Fabric Git integration', 'fabric/cicd/git-integration/intro-to-git-integration'),
       learn('Best practices for lifecycle management in Fabric', 'fabric/cicd/best-practices-cicd'),
@@ -401,6 +421,7 @@ export const QUESTIONS: readonly Question[] = [
       { score: 4, label: 'Automated CI/CD with approvals, automated checks and a tested rollback path' },
     ],
     zeroIsCritical: true,
+    effort: 'medium',
     references: [
       learn('Overview of Fabric deployment pipelines', 'fabric/cicd/deployment-pipelines/intro-to-deployment-pipelines'),
       learn('Create deployment rules', 'fabric/cicd/deployment-pipelines/create-rules'),
@@ -429,6 +450,7 @@ export const QUESTIONS: readonly Question[] = [
       { score: 4, label: 'Automated tests (data tests, semantic model best-practice rules, notebook unit tests) gate every promotion' },
     ],
     zeroIsCritical: false,
+    effort: 'high',
     references: [
       learn('Best practices for lifecycle management in Fabric', 'fabric/cicd/best-practices-cicd'),
       learn('Introduction to CI/CD in Microsoft Fabric', 'fabric/cicd/cicd-overview'),
@@ -458,6 +480,7 @@ export const QUESTIONS: readonly Question[] = [
       { score: 4, label: 'Proactive monitoring with alerts, trend analysis, chargeback or showback per workspace, and a tuning backlog' },
     ],
     zeroIsCritical: false,
+    effort: 'low',
     references: [
       learn('What is the Microsoft Fabric Capacity Metrics app?', 'fabric/enterprise/metrics-app'),
       learn('Troubleshooting guide: monitor and identify capacity usage', 'fabric/enterprise/capacity-planning-troubleshoot-consumption'),
@@ -486,6 +509,8 @@ export const QUESTIONS: readonly Question[] = [
       { score: 4, label: 'End-to-end observability: run logs, durations, freshness SLAs and alerts routed to an on-call owner' },
     ],
     zeroIsCritical: false,
+    effort: 'medium',
+    notApplicable: { label: 'We run no pipelines, notebooks or scheduled loads in Fabric' },
     references: [
       learn('What is Monitor hub in Microsoft Fabric?', 'fabric/admin/monitoring-hub'),
       learn('Workspace monitoring overview', 'fabric/fundamentals/workspace-monitoring-overview'),
@@ -514,6 +539,7 @@ export const QUESTIONS: readonly Question[] = [
       { score: 4, label: 'Audit and usage data is retained long term, analysed for adoption and anomalies, with alerts on sensitive activities such as exports and sharing' },
     ],
     zeroIsCritical: false,
+    effort: 'medium',
     references: [
       learn('Track user activities in Microsoft Fabric', 'fabric/admin/track-user-activities'),
       learn('Feature usage and adoption report', 'fabric/admin/feature-usage-adoption'),

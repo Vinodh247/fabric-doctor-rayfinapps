@@ -1,6 +1,6 @@
 import {
   evaluateAssessment,
-  type AnswerScore,
+  type Answer,
   type AssessmentAnswers,
   type AssessmentEvaluation,
 } from '@rayfin-app/shared';
@@ -69,7 +69,7 @@ function App() {
     try {
       const loaded = await loadAssessment(await getRayfinClient(), assessmentId);
       if (id !== requestId.current) return;
-      setAnswers(Object.fromEntries(loaded.result.findings.map((f) => [f.questionId, f.answerScore])));
+      setAnswers(loaded.result.answers);
       setView({
         name: 'results',
         result: loaded.result,
@@ -99,7 +99,14 @@ function App() {
           <AssessmentScreen
             answers={answers}
             step={view.step}
-            onAnswer={(questionId: string, score: AnswerScore) => setAnswers((prev) => ({ ...prev, [questionId]: score }))}
+            onAnswer={(questionId: string, answer: Answer | undefined) =>
+              setAnswers((prev) => {
+                const next = { ...prev };
+                if (answer === undefined) delete next[questionId];
+                else next[questionId] = answer;
+                return next;
+              })
+            }
             onStepChange={(step) => setView({ name: 'assessment', step })}
             onComplete={complete}
           />

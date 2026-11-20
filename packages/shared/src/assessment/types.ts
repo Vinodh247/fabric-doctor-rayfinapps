@@ -30,6 +30,14 @@ export const ANSWER_SCORES: readonly AnswerScore[] = [0, 1, 2, 3, 4];
 
 export const MAX_ANSWER_SCORE: AnswerScore = 4;
 
+/** Answer value for a question that does not apply to the estate. Excluded from scoring. */
+export const NOT_APPLICABLE = 'na' as const;
+
+export type Answer = AnswerScore | typeof NOT_APPLICABLE;
+
+/** Rough effort to fix a gap: low ≈ days, medium ≈ weeks, high ≈ a project. */
+export type FixEffort = 'low' | 'medium' | 'high';
+
 export interface AnswerOption {
   score: AnswerScore;
   label: string;
@@ -64,6 +72,10 @@ export interface Question {
   options: readonly [AnswerOption, AnswerOption, AnswerOption, AnswerOption, AnswerOption];
   /** When true, a score of 0 raises a critical finding instead of a warning. */
   zeroIsCritical: boolean;
+  /** Present when the question can be marked "not applicable"; the label explains when. */
+  notApplicable?: { label: string };
+  /** Typical effort to close the gap, used to plan the roadmap. */
+  effort: FixEffort;
   /** Official Microsoft Learn pages that back the recommendation. */
   references: readonly Reference[];
   issue: IssueTemplate;
@@ -80,7 +92,7 @@ export type HealthStatus =
   | 'Critical';
 
 /** Answers keyed by question id. Missing keys are unanswered questions. */
-export type AssessmentAnswers = Partial<Record<string, AnswerScore>>;
+export type AssessmentAnswers = Partial<Record<string, Answer>>;
 
 export interface FindingResult {
   questionId: string;
@@ -114,6 +126,8 @@ export interface CategoryEvaluation {
   criticalCount: number;
   warningCount: number;
   healthyCount: number;
+  /** Questions in this category marked not applicable. */
+  notApplicableCount: number;
 }
 
 export interface AssessmentEvaluation {
@@ -126,6 +140,10 @@ export interface AssessmentEvaluation {
   warningCount: number;
   healthyCount: number;
   categories: CategoryEvaluation[];
-  /** Sorted critical → warning → healthy, then by category and question order. */
+  /** Sorted critical → warning → healthy, then by category and question order. Not-applicable questions have none. */
   findings: FindingResult[];
+  /** Ids of questions marked not applicable, in display order. */
+  notApplicable: string[];
+  /** The complete, validated answers this result was scored from. */
+  answers: Record<string, Answer>;
 }

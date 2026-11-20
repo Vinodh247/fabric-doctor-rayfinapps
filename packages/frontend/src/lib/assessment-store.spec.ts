@@ -1,4 +1,4 @@
-import { QUESTIONS, evaluateAssessment, type AnswerScore } from '@rayfin-app/shared';
+import { NOT_APPLICABLE, QUESTIONS, evaluateAssessment, type Answer, type AnswerScore } from '@rayfin-app/shared';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -93,7 +93,7 @@ function fakeClient(options: { signedIn?: boolean; failCreate?: (entity: string,
   return { client, tables };
 }
 
-function answersWith(overrides: Record<string, AnswerScore> = {}) {
+function answersWith(overrides: Record<string, Answer> = {}) {
   return { ...Object.fromEntries(QUESTIONS.map((q, i) => [q.id, (i % 5) as AnswerScore])), ...overrides };
 }
 
@@ -148,6 +148,19 @@ describe('saveAssessment and loadAssessment', () => {
     const id = await saveAssessment(client, evaluateAssessment(answersWith()), completedAt);
     tables.Assessment.get(id)!.completedAt = 'not a date';
     await expect(loadAssessment(client, id)).rejects.toThrow('unreadable completion date');
+  });
+
+  it('round-trips not-applicable answers', async () => {
+    const { client, tables } = fakeClient();
+    const result = evaluateAssessment(answersWith({ 'engineering-delta-maintenance': NOT_APPLICABLE, 'observability-pipelines': NOT_APPLICABLE }));
+    const id = await saveAssessment(client, result, completedAt);
+
+    expect(tables.Finding.size).toBe(QUESTIONS.length);
+    const naRows = [...tables.Finding.values()].filter((row) => row.answerScore === -1);
+    expect(naRows.map((row) => row.questionId).sort()).toEqual(['engineering-delta-maintenance', 'observability-pipelines']);
+
+    const loaded = await loadAssessment(client, id);
+    expect(loaded.result).toEqual(result);
   });
 
   it('accepts dates returned as ISO strings', async () => {

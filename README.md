@@ -7,6 +7,9 @@ Fabric Doctor is a Microsoft Fabric App built with Rayfin. You answer 18 questio
 - scores six disciplines (Platform Architecture, Data Engineering, Security, Governance, DevOps and Observability) out of 100
 - rates the estate from **Critical** to **Excellent**, with critical findings capping the rating
 - turns every gap into a recommendation linked to the official Microsoft Learn documentation
+- plans the fixes as a 30/60/90-day roadmap with an impact × effort matrix
+- simulates what-if changes and shows the fewest fixes needed to reach the next rating band
+- adapts to your estate: questions that don't apply can be marked not applicable
 - saves each assessment to your account so you can track progress over time
 
 It is a guided self-assessment. It does not connect to, scan or change your Fabric tenant.

@@ -1,5 +1,7 @@
 import {
   ANSWER_SCORES,
+  NOT_APPLICABLE,
+  QUESTIONS,
   evaluateAssessment,
   toFindingFields,
   type AnswerScore,
@@ -61,6 +63,10 @@ export class NotSignedInError extends Error {
 }
 
 export const PAGE_SIZE = 10;
+
+/** Stored `answerScore` for a question marked not applicable. */
+export const NOT_APPLICABLE_SCORE = -1;
+export const NOT_APPLICABLE_SEVERITY = 'not-applicable';
 const WRITE_CONCURRENCY = 6;
 
 export interface AssessmentRows {
@@ -103,23 +109,40 @@ export function buildAssessmentRows(
       status: category.status,
       owner_id: owner.id,
     })),
-    findings: result.findings.map((finding) => ({
-      id: newId(),
-      assessmentId,
-      questionId: finding.questionId,
-      answerScore: finding.answerScore,
-      ...toFindingFields(finding),
-      owner_id: owner.id,
-    })),
+    findings: [
+      ...result.findings.map((finding) => ({
+        id: newId(),
+        assessmentId,
+        questionId: finding.questionId,
+        answerScore: finding.answerScore,
+        ...toFindingFields(finding),
+        owner_id: owner.id,
+      })),
+      // Not-applicable answers have no finding, but are stored so the assessment rebuilds exactly.
+      ...QUESTIONS.filter((q) => result.notApplicable.includes(q.id)).map((q) => ({
+        id: newId(),
+        assessmentId,
+        questionId: q.id,
+        answerScore: NOT_APPLICABLE_SCORE,
+        category: q.category,
+        severity: NOT_APPLICABLE_SEVERITY,
+        title: `Not applicable: ${q.control.title}`.slice(0, 200),
+        description: q.notApplicable?.label ?? '',
+        recommendation: '',
+        owner_id: owner.id,
+      })),
+    ],
   };
 }
 
-/** Recovers the original answers from saved findings (one per question). */
+/** Recovers the original answers from saved finding rows (one per question). */
 export function answersFromFindings(rows: Pick<FindingRecord, 'questionId' | 'answerScore'>[]): AssessmentAnswers {
   const answers: AssessmentAnswers = {};
   for (const row of rows) {
     if ((ANSWER_SCORES as readonly number[]).includes(row.answerScore)) {
       answers[row.questionId] = row.answerScore as AnswerScore;
+    } else if (row.answerScore === NOT_APPLICABLE_SCORE) {
+      answers[row.questionId] = NOT_APPLICABLE;
     }
   }
   return answers;

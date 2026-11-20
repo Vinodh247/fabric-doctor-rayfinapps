@@ -125,10 +125,11 @@ export function AboutScreen({ onStart }: { onStart: () => void }) {
           <ol className="grid grid-cols-1 gap-300 md:grid-cols-2">
             {[
               ['Start an assessment', 'Choose Start assessment on the home page. It takes about 8 minutes.'],
-              ['Answer six short steps', 'Each step covers one category with three questions. Pick the option that best describes your production estate today. You can move between steps at any time.'],
+              ['Answer six short steps', 'Two quick profile questions first skip anything that does not apply. Each step then covers one category with three questions. Pick the option that best describes your production estate today.'],
               ['Read your results', 'See the overall score and rating, each category score, and your top priorities. A critical finding can lower the rating even when the score is high.'],
               ['Work through the findings', 'Filter by severity or category. Every gap explains why it matters, what to do, and links to the official Microsoft Learn pages.'],
-              ['Share the summary', 'Copy summary puts a plain-text report on your clipboard, ready for email, Teams or a ticket.'],
+              ['Plan the fixes', 'Roadmap turns every gap into a 30/60/90-day plan and an impact × effort matrix. What-if lets you change answers and watch the score move, and shows the fewest fixes to reach the next band.'],
+              ['Share the summary', 'Copy summary or Copy roadmap puts a plain-text report on your clipboard, ready for email, Teams or a ticket.'],
               ['Track progress over time', 'Results are saved to your account automatically. Reassess after changes and compare under Past assessments.'],
             ].map(([title, body], index) => (
               <li key={title} className="flex gap-300 rounded-2xl border border-border bg-card p-400 shadow-xs">
@@ -198,7 +199,9 @@ export function AboutScreen({ onStart }: { onStart: () => void }) {
                 ))}
               </ul>
               <p className="text-300 leading-300 text-muted-foreground">
-                0 to 2 creates a finding to fix. 3 or 4 is recorded as a healthy control.
+                0 to 2 creates a finding to fix. 3 or 4 is recorded as a healthy control. A few questions can be marked{' '}
+                <strong className="font-semibold">Not applicable</strong>; they are left out and the category is scored on the questions
+                that apply.
               </p>
             </Card>
 

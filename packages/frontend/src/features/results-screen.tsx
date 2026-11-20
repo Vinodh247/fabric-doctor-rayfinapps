@@ -1,11 +1,13 @@
-import type { AssessmentEvaluation, CategoryEvaluation, Severity } from '@rayfin-app/shared';
-import { ArrowRight, Check, CircleAlert, ClipboardCopy, CloudCheck, Info, Loader2, PencilLine, RotateCcw } from 'lucide-react';
+import { pathToNextBand, type AssessmentEvaluation, type CategoryEvaluation, type Severity } from '@rayfin-app/shared';
+import { ArrowRight, Check, CircleAlert, ClipboardCopy, CloudCheck, Info, Loader2, PencilLine, RotateCcw, Route } from 'lucide-react';
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 
 import { ScoreGauge } from '@/components/score-gauge';
 import { StatusBadge } from '@/components/status';
 import { Button } from '@/components/ui/button';
 import { FindingCard, FindingsPanel } from '@/features/findings-panel';
+import { RoadmapPanel } from '@/features/roadmap-panel';
+import { WhatIfPanel } from '@/features/whatif-panel';
 import { buildShareSummary } from '@/lib/share-summary';
 import { CATEGORY_ICONS, SEVERITY_META, STATUS_TONE } from '@/lib/tones';
 import { cn } from '@/lib/utils';
@@ -23,7 +25,7 @@ interface ResultsScreenProps {
   onRestart: () => void;
 }
 
-type Tab = 'overview' | 'findings';
+type Tab = 'overview' | 'findings' | 'roadmap' | 'whatif';
 
 const HEADLINE: Record<AssessmentEvaluation['overallStatus'], string> = {
   Excellent: 'A mature, well-run Fabric estate.',
@@ -38,12 +40,15 @@ export function ResultsScreen({ result, completedAt, save, notice, onRetrySave, 
   const tabs: { id: Tab; label: string }[] = [
     { id: 'overview', label: 'Overview' },
     { id: 'findings', label: `Findings (${result.findings.length})` },
+    { id: 'roadmap', label: 'Roadmap' },
+    { id: 'whatif', label: 'What-if' },
   ];
-  const tabRefs = useRef<Record<Tab, HTMLButtonElement | null>>({ overview: null, findings: null });
+  const tabRefs = useRef<Partial<Record<Tab, HTMLButtonElement | null>>>({});
 
   function onTabKey(event: KeyboardEvent<HTMLButtonElement>) {
     if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
-    const next: Tab = tab === 'overview' ? 'findings' : 'overview';
+    const index = tabs.findIndex((t) => t.id === tab);
+    const next = tabs[(index + (event.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length].id;
     setTab(next);
     tabRefs.current[next]?.focus();
   }
@@ -76,7 +81,7 @@ export function ResultsScreen({ result, completedAt, save, notice, onRetrySave, 
         </p>
       )}
 
-      <div role="tablist" aria-label="Results views" className="flex gap-100 border-b border-border">
+      <div role="tablist" aria-label="Results views" className="flex gap-100 overflow-x-auto border-b border-border">
         {tabs.map((t) => (
           <button
             key={t.id}
@@ -92,7 +97,7 @@ export function ResultsScreen({ result, completedAt, save, notice, onRetrySave, 
             onClick={() => setTab(t.id)}
             onKeyDown={onTabKey}
             className={cn(
-              '-mb-px border-b-2 px-400 py-200 text-[length:var(--text-300)] font-semibold transition-colors',
+              '-mb-px shrink-0 border-b-2 px-400 py-200 text-[length:var(--text-300)] font-semibold whitespace-nowrap transition-colors',
               'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
               tab === t.id ? 'border-primary text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground',
             )}
@@ -103,11 +108,17 @@ export function ResultsScreen({ result, completedAt, save, notice, onRetrySave, 
       </div>
 
       <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`}>
-        {tab === 'overview' ? (
-          <Overview result={result} completedAt={completedAt} onShowFindings={() => setTab('findings')} />
-        ) : (
-          <FindingsPanel result={result} />
+        {tab === 'overview' && (
+          <Overview
+            result={result}
+            completedAt={completedAt}
+            onShowFindings={() => setTab('findings')}
+            onShowWhatIf={() => setTab('whatif')}
+          />
         )}
+        {tab === 'findings' && <FindingsPanel result={result} />}
+        {tab === 'roadmap' && <RoadmapPanel result={result} />}
+        {tab === 'whatif' && <WhatIfPanel result={result} />}
       </div>
     </div>
   );
@@ -117,11 +128,14 @@ function Overview({
   result,
   completedAt,
   onShowFindings,
+  onShowWhatIf,
 }: {
   result: AssessmentEvaluation;
   completedAt: Date;
   onShowFindings: () => void;
+  onShowWhatIf: () => void;
 }) {
+  const path = pathToNextBand(result);
   const priorities = result.findings.filter((f) => f.severity !== 'healthy').slice(0, 3);
   const severities: Severity[] = ['critical', 'warning', 'healthy'];
   const counts: Record<Severity, number> = {
@@ -173,6 +187,28 @@ function Overview({
           </dl>
         </div>
       </section>
+
+      {path && (
+        <button
+          type="button"
+          onClick={onShowWhatIf}
+          className="group flex flex-wrap items-center gap-300 rounded-2xl border border-primary/40 bg-accent px-600 py-400 text-left text-accent-foreground transition-colors hover:bg-accent/80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring lg:col-span-3"
+        >
+          <Route aria-hidden className="icon-size-300 shrink-0" />
+          <span className="min-w-0 flex-1 text-400 leading-400">
+            <strong className="font-semibold">
+              {path.steps.length === 1 ? 'One fix' : `${path.steps.length} fixes`} to reach {path.to}.
+            </strong>{' '}
+            <span className="text-300">
+              {result.overallScore} → {path.result.overallScore}, starting with {path.steps[0].title.toLowerCase()}.
+            </span>
+          </span>
+          <span className="flex items-center gap-100 text-300 font-semibold">
+            Explore in What-if
+            <ArrowRight aria-hidden className="icon-size-200 transition-transform group-hover:translate-x-1" />
+          </span>
+        </button>
+      )}
 
       {/* Category breakdown */}
       <section aria-labelledby="categories-heading" className="min-w-0 rounded-2xl border border-border bg-card shadow-sm lg:col-span-2">

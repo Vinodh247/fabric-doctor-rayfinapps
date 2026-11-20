@@ -2,6 +2,8 @@ import { CATEGORIES } from './categories.js';
 import { QUESTIONS } from './questions.js';
 import {
   MAX_ANSWER_SCORE,
+  NOT_APPLICABLE,
+  type Answer,
   type AnswerScore,
   type AssessmentAnswers,
   type AssessmentEvaluation,
@@ -30,7 +32,7 @@ export const CRITICAL_OVERRIDES: readonly { minimumCriticalFindings: number; cap
   { minimumCriticalFindings: 1, cap: 'Needs Attention' },
 ];
 
-const STATUS_RANK: Record<HealthStatus, number> = {
+export const STATUS_RANK: Record<HealthStatus, number> = {
   Critical: 0,
   'High Risk': 1,
   'Needs Attention': 2,
@@ -71,13 +73,18 @@ export function severityForAnswer(question: Question, score: AnswerScore): Sever
   return 'warning';
 }
 
-function isAnswerScore(value: unknown): value is AnswerScore {
+export function isAnswerScore(value: unknown): value is AnswerScore {
   return typeof value === 'number' && Number.isInteger(value) && value >= 0 && value <= MAX_ANSWER_SCORE;
+}
+
+/** True when the value is a valid answer for this question ("not applicable" only where allowed). */
+export function isValidAnswer(question: Question, value: unknown): value is Answer {
+  return isAnswerScore(value) || (value === NOT_APPLICABLE && question.notApplicable !== undefined);
 }
 
 /** Ids of questions that have no valid answer yet, in display order. */
 export function getUnansweredQuestions(answers: AssessmentAnswers): string[] {
-  return QUESTIONS.filter((q) => !isAnswerScore(answers[q.id])).map((q) => q.id);
+  return QUESTIONS.filter((q) => !isValidAnswer(q, answers[q.id])).map((q) => q.id);
 }
 
 function buildFinding(question: Question, score: AnswerScore): FindingResult {
@@ -130,13 +137,18 @@ export function evaluateAssessment(answers: AssessmentAnswers): AssessmentEvalua
   const questionOrder = new Map(QUESTIONS.map((q, index) => [q.id, index]));
   const categoryOrder = new Map(CATEGORIES.map((c, index) => [c.id, index]));
 
-  const findings = QUESTIONS.map((q) => buildFinding(q, answers[q.id] as AnswerScore));
+  const complete = Object.fromEntries(QUESTIONS.map((q) => [q.id, answers[q.id] as Answer]));
+  const scored = QUESTIONS.filter((q) => isAnswerScore(complete[q.id]));
+  const findings = scored.map((q) => buildFinding(q, complete[q.id] as AnswerScore));
 
   const categories: CategoryEvaluation[] = CATEGORIES.map((category) => {
     const questions = QUESTIONS.filter((q) => q.category === category.id);
-    const earned = questions.reduce((sum, q) => sum + (answers[q.id] as AnswerScore), 0);
-    const available = questions.length * MAX_ANSWER_SCORE;
-    const score = available > 0 ? Math.round((earned / available) * category.maximumScore) : 0;
+    const scoredHere = questions.filter((q) => isAnswerScore(complete[q.id]));
+    const earned = scoredHere.reduce((sum, q) => sum + (complete[q.id] as AnswerScore), 0);
+    const available = scoredHere.length * MAX_ANSWER_SCORE;
+    // Not-applicable questions are excluded: the category is scored on what applies.
+    // The configuration guarantees at least one scored question per category.
+    const score = available > 0 ? Math.round((earned / available) * category.maximumScore) : category.maximumScore;
     const categoryFindings = findings.filter((f) => f.category === category.id);
     const criticalCount = countBySeverity(categoryFindings, 'critical');
     const numericStatus = statusForScore(score, category.maximumScore);
@@ -154,6 +166,7 @@ export function evaluateAssessment(answers: AssessmentAnswers): AssessmentEvalua
       criticalCount,
       warningCount: countBySeverity(categoryFindings, 'warning'),
       healthyCount: countBySeverity(categoryFindings, 'healthy'),
+      notApplicableCount: questions.length - scoredHere.length,
     };
   });
 
@@ -181,6 +194,8 @@ export function evaluateAssessment(answers: AssessmentAnswers): AssessmentEvalua
     healthyCount: countBySeverity(findings, 'healthy'),
     categories,
     findings: sortedFindings,
+    notApplicable: QUESTIONS.filter((q) => complete[q.id] === NOT_APPLICABLE).map((q) => q.id),
+    answers: complete,
   };
 }
 
